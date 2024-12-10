@@ -31,7 +31,7 @@ int main(void) {
 
     int geometry_ammount = 0;
 
-    float step_size = 1.0f;
+    float step_size = 10.0f;
 
     Camera3D camera = {0};
     camera.position = (Vector3){0, 1, 0};
@@ -45,7 +45,7 @@ int main(void) {
     for (int i = 0; i < MAX_GEOMETRY; i++) {
         map_geometry[i].pos = Vector3Zero();
         map_geometry[i].active = false;
-        map_geometry[i].size = (Vector3){10, 10, 10};
+        map_geometry[i].size = (Vector3){25, 25, 25};
         map_geometry[i].see_through = false;
 
         /*printf("i: %d\n", i);*/
@@ -80,7 +80,8 @@ int main(void) {
 
         BeginMode3D(camera);
 
-        DrawGrid(10000, 10.0f);
+        /*DrawGrid(10000, 100.0f);*/
+        DrawPlane(Vector3Zero(), (Vector2){10000, 10000}, ColorAlpha(GRAY, 0.2));
 
         for (int i = 0; i < MAX_GEOMETRY; i++) {
             if (map_geometry[i].active) {
@@ -111,7 +112,9 @@ int main(void) {
                 for (int i = 0; i < MAX_GEOMETRY; i++) {
                     if (!map_geometry[i].active) {
                         map_geometry[i].active = true;
-                        map_geometry[i].pos = camera.position;
+                        map_geometry[i].pos.x = (int)camera.position.x;
+                        map_geometry[i].pos.y = (int)camera.position.y;
+                        map_geometry[i].pos.z = (int)camera.position.z;
                         selected_geometry = i;
                         break;
                     }
@@ -134,14 +137,16 @@ int main(void) {
                      20, 190, 20, WHITE);
 
             if (GuiButton((Rectangle){150, 150, 150, 50},
-                          TextFormat("Set pos to camera\nCamera at:%.1f, %.1f, %.1f", camera.position.x,
+                          TextFormat("Set pos to camera\nCamera at:%.f, %.f, %.f", camera.position.x,
                                      camera.position.y,
                                      camera.position.z))) {
-                map_geometry[selected_geometry].pos = camera.position;
+                map_geometry[selected_geometry].pos.x = (int)camera.position.x;
+                map_geometry[selected_geometry].pos.y = (int)camera.position.y;
+                map_geometry[selected_geometry].pos.z = (int)camera.position.z;
             }
 
             if (GuiButton((Rectangle){200, 230, 150, 50}, "Reset size")) {
-                map_geometry[selected_geometry].size = (Vector3){10, 10, 10};
+                map_geometry[selected_geometry].size = (Vector3){25, 25, 25};
             }
 
             DrawText(TextFormat("Height: %f\nWidth :%f\nDepth: %f",
@@ -181,41 +186,41 @@ int main(void) {
 
             /* EDIT GEOMETRY */
 
-            if (IsKeyDown(KEY_UP)) {
+            if (IsKeyPressed(KEY_UP)) {
                 map_geometry[selected_geometry].pos.z += step_size;
             }
-            if (IsKeyDown(KEY_DOWN)) {
+            if (IsKeyPressed(KEY_DOWN)) {
                 map_geometry[selected_geometry].pos.z -= step_size;
             }
-            if (IsKeyDown(KEY_LEFT)) {
+            if (IsKeyPressed(KEY_LEFT)) {
                 map_geometry[selected_geometry].pos.x -= step_size;
             }
-            if (IsKeyDown(KEY_RIGHT)) {
+            if (IsKeyPressed(KEY_RIGHT)) {
                 map_geometry[selected_geometry].pos.x += step_size;
             }
-            if (IsKeyDown(KEY_RIGHT_SHIFT)) {
+            if (IsKeyPressed(KEY_RIGHT_SHIFT)) {
                 map_geometry[selected_geometry].pos.y += step_size;
             }
-            if (IsKeyDown(KEY_RIGHT_CONTROL)) {
+            if (IsKeyPressed(KEY_RIGHT_CONTROL)) {
                 map_geometry[selected_geometry].pos.y -= step_size;
             }
 
-            if (IsKeyDown(KEY_W)) {
+            if (IsKeyPressed(KEY_W)) {
                 map_geometry[selected_geometry].size.x += step_size;
             }
-            if (IsKeyDown(KEY_S)) {
+            if (IsKeyPressed(KEY_S)) {
                 map_geometry[selected_geometry].size.x -= step_size;
             }
-            if (IsKeyDown(KEY_A)) {
+            if (IsKeyPressed(KEY_A)) {
                 map_geometry[selected_geometry].size.z -= step_size;
             }
-            if (IsKeyDown(KEY_D)) {
+            if (IsKeyPressed(KEY_D)) {
                 map_geometry[selected_geometry].size.z += step_size;
             }
-            if (IsKeyDown(KEY_LEFT_CONTROL)) {
+            if (IsKeyPressed(KEY_LEFT_CONTROL)) {
                 map_geometry[selected_geometry].size.y -= step_size;
             }
-            if (IsKeyDown(KEY_LEFT_SHIFT)) {
+            if (IsKeyPressed(KEY_LEFT_SHIFT)) {
                 map_geometry[selected_geometry].size.y += step_size;
             }
         }
