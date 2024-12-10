@@ -1,10 +1,12 @@
 #include "raylib.h"
 #include "raymath.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-#define MAX_GEOMETRY 5
+#define MAX_GEOMETRY 100
 
 typedef struct Geometry {
         Vector3 pos;
@@ -13,6 +15,8 @@ typedef struct Geometry {
         int id;
         bool selected;
 } Geometry;
+
+void export_map(int geometry_ammount, Geometry *map_geometry);
 
 int main(void) {
 
@@ -25,6 +29,8 @@ int main(void) {
 
     int selected_geometry = 0;
 
+    int geometry_ammount = 0;
+
     float step_size = 0.10f;
 
     Camera3D camera = {0};
@@ -35,8 +41,6 @@ int main(void) {
     camera.projection = CAMERA_PERSPECTIVE;
 
     Geometry map_geometry[MAX_GEOMETRY];
-
-    int teste = 0;
 
     for (int i = 0; i < MAX_GEOMETRY; i++) {
         map_geometry[i].pos = Vector3Zero();
@@ -98,6 +102,7 @@ int main(void) {
 
             if (GuiButton((Rectangle){10, 40, 100, 30},
                           "Add Geometry")) {
+                geometry_ammount++;
                 for (int i = 0; i < MAX_GEOMETRY; i++) {
                     if (!map_geometry[i].active) {
                         map_geometry[i].active = true;
@@ -108,7 +113,7 @@ int main(void) {
                 }
             }
 
-            GuiLabel((Rectangle){10, 80, 100, 20}, "Add Geometry");
+            GuiLabel((Rectangle){10, 80, 100, 20}, "Select Geometry");
 
             GuiSpinner((Rectangle){120, 80, 120, 30}, NULL, &selected_geometry, 0, MAX_GEOMETRY - 1, false);
 
@@ -161,6 +166,10 @@ int main(void) {
 
             DrawText("ESC to toggle camera movement", 370, 200, 20, WHITE);
 
+            if (GuiButton((Rectangle){390, 250, 150, 50}, "Export Level")) {
+                export_map(geometry_ammount, map_geometry);
+            }
+
             /* EDIT GEOMETRY */
 
             if (IsKeyDown(KEY_UP)) {
@@ -207,4 +216,35 @@ int main(void) {
     CloseWindow();
 
     return 0;
+}
+
+void export_map(int geometry_ammount, Geometry *map_geometry) {
+    FILE *file = fopen("map_geometry.wireframe", "w");
+
+    if (file == NULL) {
+        perror("Error exporting to file\n");
+        return;
+    }
+
+    fprintf(file, "int solid_count = 0\n\n");
+
+    for (int i = 0; i < geometry_ammount; i++) {
+        fprintf(file, "solids[%d].size = (Vector3){%f, %f, %f};\n",
+                i, map_geometry[i].size.x, map_geometry[i].size.y, map_geometry[i].size.z);
+
+        fprintf(file, "solids[%d].mesh = GenMeshCube(%f, %f, %f);\n",
+                i, map_geometry[i].size.x, map_geometry[i].size.y, map_geometry[i].size.z);
+
+        fprintf(file, "solids[%d].model = LoadModelFromMesh(solids[%d].mesh);\n", i, i);
+
+        fprintf(file, "solids[%d].pos = (Vector3){%f, %f, %f};\n",
+                i, map_geometry[i].pos.x, map_geometry[i].pos.y, map_geometry[i].pos.z);
+
+        fprintf(file, "solids[%d].see_through = false;\n", i);
+        fprintf(file, "solid_count++;\n\n");
+    }
+
+    fprintf(file, "*count = solid_count;");
+
+    fclose(file);
 }
