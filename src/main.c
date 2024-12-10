@@ -12,7 +12,7 @@ typedef struct Geometry {
         Vector3 pos;
         Vector3 size;
         bool active;
-        int id;
+        int see_through;
         bool selected;
 } Geometry;
 
@@ -31,7 +31,7 @@ int main(void) {
 
     int geometry_ammount = 0;
 
-    float step_size = 0.10f;
+    float step_size = 1.0f;
 
     Camera3D camera = {0};
     camera.position = (Vector3){0, 1, 0};
@@ -45,8 +45,8 @@ int main(void) {
     for (int i = 0; i < MAX_GEOMETRY; i++) {
         map_geometry[i].pos = Vector3Zero();
         map_geometry[i].active = false;
-        map_geometry[i].id = i;
-        map_geometry[i].size = Vector3One();
+        map_geometry[i].size = (Vector3){10, 10, 10};
+        map_geometry[i].see_through = false;
 
         /*printf("i: %d\n", i);*/
     }
@@ -84,9 +84,14 @@ int main(void) {
 
         for (int i = 0; i < MAX_GEOMETRY; i++) {
             if (map_geometry[i].active) {
-                DrawCubeV(map_geometry[i].pos, map_geometry[i].size, BLACK);
-                DrawCubeWiresV(map_geometry[i].pos, map_geometry[i].size, RED);
+                if (i != selected_geometry) {
+                    DrawCubeV(map_geometry[i].pos, map_geometry[i].size, DARKGRAY);
+                    DrawCubeWiresV(map_geometry[i].pos, map_geometry[i].size, RED);
+                }
                 if (i == selected_geometry) {
+
+                    DrawCubeV(map_geometry[i].pos, map_geometry[i].size, GRAY);
+
                     DrawCubeWiresV(map_geometry[i].pos, map_geometry[i].size, GREEN);
                 }
             }
@@ -136,7 +141,7 @@ int main(void) {
             }
 
             if (GuiButton((Rectangle){200, 230, 150, 50}, "Reset size")) {
-                map_geometry[selected_geometry].size = Vector3One();
+                map_geometry[selected_geometry].size = (Vector3){10, 10, 10};
             }
 
             DrawText(TextFormat("Height: %f\nWidth :%f\nDepth: %f",
@@ -145,22 +150,26 @@ int main(void) {
                                 map_geometry[selected_geometry].size.z),
                      20, 215, 20, WHITE);
 
+            GuiSpinner((Rectangle){200, 300, 100, 30}, "See through",
+                       &map_geometry[selected_geometry].see_through,
+                       0, 1, false);
+
             GuiGroupBox((Rectangle){360, 10, 340, 370}, "Controls");
 
             DrawText("Arrow keys, RCtrl / RShift: change position\n"
                      "WASD, LShift / LCtrl: change size",
                      370, 20, 14, WHITE);
 
-            GuiSliderPro((Rectangle){380, 70, 290, 30}, "0", "1000", &step_size, 0.0f, 100.0f, 10);
+            GuiSliderPro((Rectangle){380, 70, 290, 30}, "0", "100", &step_size, 0.0f, 100.0f, 10);
             DrawText(TextFormat("Step Size:%6.2f", step_size), 425, 110, 25, WHITE);
 
             if (GuiButton((Rectangle){380, 105, 40, 40}, "<")) {
-                step_size -= 0.10f;
+                step_size -= 0.50f;
                 step_size = Clamp(step_size, 0.0f, 100.0f);
             }
 
             if (GuiButton((Rectangle){630, 105, 40, 40}, ">")) {
-                step_size += 0.10f;
+                step_size += 0.50f;
                 step_size = Clamp(step_size, 0.0f, 100.0f);
             }
 
@@ -184,10 +193,10 @@ int main(void) {
             if (IsKeyDown(KEY_RIGHT)) {
                 map_geometry[selected_geometry].pos.x += step_size;
             }
-            if (IsKeyDown(KEY_SPACE)) {
+            if (IsKeyDown(KEY_RIGHT_SHIFT)) {
                 map_geometry[selected_geometry].pos.y += step_size;
             }
-            if (IsKeyDown(KEY_RIGHT_SHIFT)) {
+            if (IsKeyDown(KEY_RIGHT_CONTROL)) {
                 map_geometry[selected_geometry].pos.y -= step_size;
             }
 
@@ -203,11 +212,11 @@ int main(void) {
             if (IsKeyDown(KEY_D)) {
                 map_geometry[selected_geometry].size.z += step_size;
             }
-            if (IsKeyDown(KEY_TAB)) {
-                map_geometry[selected_geometry].size.y += step_size;
+            if (IsKeyDown(KEY_LEFT_CONTROL)) {
+                map_geometry[selected_geometry].size.y -= step_size;
             }
             if (IsKeyDown(KEY_LEFT_SHIFT)) {
-                map_geometry[selected_geometry].size.y -= step_size;
+                map_geometry[selected_geometry].size.y += step_size;
             }
         }
 
@@ -222,11 +231,17 @@ void export_map(int geometry_ammount, Geometry *map_geometry) {
     FILE *file = fopen("map_geometry.wireframe", "w");
 
     if (file == NULL) {
-        perror("Error exporting to file\n");
+        perror("Error exporting to file");
         return;
     }
 
-    fprintf(file, "int solid_count = 0\n\n");
+    /*  temp hard-coded ground until i find a better solution*/
+    fprintf(file, "ground_geometry[0].size = (Vector3){2000, 1, 2000};\n"
+                  "ground_geometry[0].mesh = GenMeshCube(2000, 1, 2000);\n"
+                  "ground_geometry[0].model = LoadModelFromMesh(ground_geometry[0].mesh);\n"
+                  "ground_geometry[0].pos = (Vector3){0, 0, 0};\n\n");
+
+    fprintf(file, "int solid_count = 0;\n\n");
 
     for (int i = 0; i < geometry_ammount; i++) {
         fprintf(file, "solids[%d].size = (Vector3){%f, %f, %f};\n",
@@ -240,11 +255,12 @@ void export_map(int geometry_ammount, Geometry *map_geometry) {
         fprintf(file, "solids[%d].pos = (Vector3){%f, %f, %f};\n",
                 i, map_geometry[i].pos.x, map_geometry[i].pos.y, map_geometry[i].pos.z);
 
-        fprintf(file, "solids[%d].see_through = false;\n", i);
+        fprintf(file, "solids[%d].see_through = %d;\n", i,
+                map_geometry[i].see_through);
         fprintf(file, "solid_count++;\n\n");
     }
 
-    fprintf(file, "*count = solid_count;");
+    fprintf(file, "*count = solid_count;\n");
 
     fclose(file);
 }
