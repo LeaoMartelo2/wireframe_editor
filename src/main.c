@@ -1,5 +1,6 @@
 #include "../raylib/raylib.h"
 #include "../raylib/raymath.h"
+#include "camera.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +65,8 @@ int main(void) {
         }
 
         if (!gui_active) {
-            UpdateCamera(&camera, CAMERA_FREE);
+            /*UpdateCamera(&camera, CAMERA_FREE);*/
+            update_custom_camera(&camera);
 
             if (IsKeyDown(KEY_Q)) {
                 camera.up = (Vector3){0, 1, 0};
