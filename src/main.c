@@ -1,10 +1,10 @@
-#include "raylib.h"
-#include "raymath.h"
+#include "../raylib/raylib.h"
+#include "../raylib/raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
+#include "../raylib/raygui.h"
 
 #define MAX_GEOMETRY 100
 
