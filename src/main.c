@@ -1,21 +1,11 @@
 #include "../raylib/raylib.h"
 #include "../raylib/raymath.h"
 #include "camera.h"
+#include "editor.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #define RAYGUI_IMPLEMENTATION
 #include "../raylib/raygui.h"
-
-#define MAX_GEOMETRY 100
-
-typedef struct Geometry {
-        Vector3 pos;
-        Vector3 size;
-        bool active;
-        int see_through;
-        bool selected;
-} Geometry;
 
 void export_map(int geometry_ammount, Geometry *map_geometry);
 
@@ -28,7 +18,7 @@ int main(void) {
 
     bool gui_active = true;
 
-    int gui_type = 0;
+    int gui_type = EDITOR_GROUND;
 
     int selected_geometry = 0;
 
@@ -48,8 +38,19 @@ int main(void) {
     for (int i = 0; i < MAX_GEOMETRY; i++) {
         map_geometry[i].pos = Vector3Zero();
         map_geometry[i].active = false;
-        map_geometry[i].size = (Vector3){25, 25, 25};
+        map_geometry[i].size = (Vector3){10, 10, 10};
         map_geometry[i].see_through = false;
+    }
+
+    int selected_ground = 0;
+    int ground_ammount = 0;
+
+    Ground map_ground[MAX_GROUND];
+
+    for (int i = 0; i < MAX_GROUND; i++) {
+        map_ground[i].pos = Vector3Zero();
+        map_ground[i].active = false;
+        map_ground[i].size = (Vector3){2000, 1, 2000};
     }
 
     while (!WindowShouldClose()) {
@@ -65,7 +66,6 @@ int main(void) {
         }
 
         if (!gui_active) {
-            /*UpdateCamera(&camera, CAMERA_FREE);*/
             update_custom_camera(&camera);
 
             if (IsKeyDown(KEY_Q)) {
@@ -82,10 +82,10 @@ int main(void) {
 
         BeginMode3D(camera);
 
-        DrawLine3D((Vector3){0, 0, 0}, (Vector3){1000, 0, 0}, RED);
-        DrawLine3D((Vector3){0, 0, 0}, (Vector3){0, 1000, 0}, GREEN);
-        DrawLine3D((Vector3){0, 0, 0}, (Vector3){0, 0, 1000}, BLUE);
-        DrawSphere((Vector3){0, 0, 0}, 0.005, WHITE);
+        DrawLine3D((Vector3){0, 1, 0}, (Vector3){1000, 0, 0}, RED);
+        DrawLine3D((Vector3){0, 1, 0}, (Vector3){0, 1000, 0}, GREEN);
+        DrawLine3D((Vector3){0, 1, 0}, (Vector3){0, 0, 1000}, BLUE);
+        DrawSphere((Vector3){0, 1, 0}, 0.005, WHITE);
 
         for (int i = 0; i < MAX_GEOMETRY; i++) {
             if (map_geometry[i].active) {
@@ -96,8 +96,21 @@ int main(void) {
                 if (i == selected_geometry) {
 
                     DrawCubeV(map_geometry[i].pos, map_geometry[i].size, GRAY);
-
                     DrawCubeWiresV(map_geometry[i].pos, map_geometry[i].size, GREEN);
+                }
+            }
+        }
+
+        for (int i = 0; i < MAX_GROUND; i++) {
+            if (map_ground[i].active) {
+                if (i != selected_ground) {
+                    DrawCubeV(map_ground[i].pos, map_ground[i].size, GetColor(0x181818FF));
+                    DrawCubeWiresV(map_ground[i].pos, map_ground[i].size, BLUE);
+                }
+                if (i == selected_ground) {
+
+                    DrawCubeV(map_ground[i].pos, map_ground[i].size, ColorBrightness(GetColor(0x181818FF), 0.5));
+                    DrawCubeWiresV(map_ground[i].pos, map_ground[i].size, GREEN);
                 }
             }
         }
@@ -106,150 +119,22 @@ int main(void) {
 
         if (gui_active) {
 
-            DrawRectangle(GetScreenWidth() - 350, 0, 350, 80, ColorAlpha(GetColor(0x001100FF), 0.7f));
-            GuiGroupBox((Rectangle){GetScreenWidth() - 340, 10, 340, 60}, "Controls");
+            draw_static_gui(&step_size, &gui_type);
 
-            DrawText("Arrow keys, RCtrl / RShift: change position\n"
-                     "WASD,  X / Z: change size\n"
-                     "ESC to toggle camera movement\n",
-                     GetScreenWidth() - 320, 20, 14, WHITE);
+            if (gui_type == EDITOR_GEOMETRY) {
 
-            DrawRectangle(0, 0, 360, 390, ColorAlpha(GetColor(0x001100FF), 0.7));
-
-            DrawText("Manage Geometry", 10, 10, 30, WHITE);
-
-            if (GuiButton((Rectangle){10, 40, 100, 30},
-                          "Add Geometry")) {
-                geometry_ammount++;
-                for (int i = 0; i < MAX_GEOMETRY; i++) {
-                    if (!map_geometry[i].active) {
-                        map_geometry[i].active = true;
-                        map_geometry[i].pos.x = (int)camera.position.x;
-                        map_geometry[i].pos.y = (int)camera.position.y;
-                        map_geometry[i].pos.z = (int)camera.position.z;
-                        selected_geometry = i;
-                        break;
-                    }
-                }
+                draw_geometry_gui(&selected_geometry, &geometry_ammount, map_geometry, camera, step_size);
+                edit_geometry(map_geometry, selected_geometry, step_size);
             }
 
-            GuiLabel((Rectangle){10, 80, 100, 20}, "Select Geometry");
+            if (gui_type == EDITOR_GROUND) {
 
-            GuiSpinner((Rectangle){120, 80, 120, 30}, NULL, &selected_geometry, 0, MAX_GEOMETRY - 1, false);
-
-            GuiGroupBox((Rectangle){10, 120, 340, 260}, "Geometry Properties");
-
-            DrawText(TextFormat("X: %.2f\nY: %.2f\nZ: %.2f",
-                                map_geometry[selected_geometry].pos.x,
-                                map_geometry[selected_geometry].pos.y,
-                                map_geometry[selected_geometry].pos.z),
-                     20, 150, 20, WHITE);
-
-            if (GuiButton((Rectangle){190, 150, 150, 50},
-                          TextFormat("#48#Set pos to camera\nCamera at: %.f, %.f, %.f", camera.position.x,
-                                     camera.position.y,
-                                     camera.position.z))) {
-                map_geometry[selected_geometry].pos.x = (int)camera.position.x;
-                map_geometry[selected_geometry].pos.y = (int)camera.position.y;
-                map_geometry[selected_geometry].pos.z = (int)camera.position.z;
-            }
-
-            if (GuiButton((Rectangle){190, 230, 150, 50}, "#211#Reset size")) {
-                map_geometry[selected_geometry].size = (Vector3){25, 25, 25};
-            }
-
-            DrawText(TextFormat("\n(X) Width: %.2f\n(Y) Height: %.2f\n(Z) Depth: %.2f",
-                                map_geometry[selected_geometry].size.x,
-                                map_geometry[selected_geometry].size.y,
-                                map_geometry[selected_geometry].size.z),
-                     20, 215, 20, WHITE);
-
-            GuiSpinner((Rectangle){200, 300, 100, 30}, "See through",
-                       &map_geometry[selected_geometry].see_through,
-                       0, 1, false);
-
-            GuiGroupBox((Rectangle){10, GetScreenHeight() - 100, 340, 100}, "Settings");
-
-            DrawText(TextFormat("Step Size: %.1f", step_size), 65, GetScreenHeight() - 90, 20, WHITE);
-            /* decrease step size */
-            if (GuiButton((Rectangle){15, GetScreenHeight() - 90, 40, 20}, "#118#")) {
-                step_size -= 0.50f;
-                step_size = Clamp(step_size, 0.0f, 100.0f);
-            }
-            /* increse step size */
-            if (GuiButton((Rectangle){220, GetScreenHeight() - 90, 40, 20}, "#119#")) {
-                step_size += 0.50f;
-                step_size = Clamp(step_size, 0.0f, 100.0f);
-            }
-
-            if (GuiButton((Rectangle){280, GetScreenHeight() - 90, 40, 20}, "#211#")) {
-                step_size = 10.0f;
-            }
-
-            GuiSpinner((Rectangle){150, GetScreenHeight() - 60, 150, 40},
-                       "editor type \n(not added) ", &gui_type, 0, 0, false);
-
-            GuiGroupBox((Rectangle){GetScreenWidth() - 340, GetScreenHeight() - 100, 340, 100}, "Options");
-
-            if (GuiButton((Rectangle){GetScreenWidth() - 330, GetScreenHeight() - 90, 80, 50}, "#02#Export")) {
-                export_map(geometry_ammount, map_geometry);
-            }
-
-            /* EDIT GEOMETRY */
-
-            if (IsKeyPressed(KEY_UP)) {
-                map_geometry[selected_geometry].pos.z += step_size;
-            }
-            if (IsKeyPressed(KEY_DOWN)) {
-                map_geometry[selected_geometry].pos.z -= step_size;
-            }
-            if (IsKeyPressed(KEY_LEFT)) {
-                map_geometry[selected_geometry].pos.x -= step_size;
-            }
-            if (IsKeyPressed(KEY_RIGHT)) {
-                map_geometry[selected_geometry].pos.x += step_size;
-            }
-            if (IsKeyPressed(KEY_RIGHT_SHIFT)) {
-                map_geometry[selected_geometry].pos.y += step_size;
-            }
-            if (IsKeyPressed(KEY_RIGHT_CONTROL)) {
-                map_geometry[selected_geometry].pos.y -= step_size;
-            }
-
-            if (IsKeyPressed(KEY_W)) {
-                map_geometry[selected_geometry].size.x += step_size;
-                map_geometry[selected_geometry].size.x = Clamp(map_geometry[selected_geometry].size.x,
-                                                               0.5f, 1000.0f);
-            }
-            if (IsKeyPressed(KEY_S)) {
-                map_geometry[selected_geometry].size.x -= step_size;
-                map_geometry[selected_geometry].size.x = Clamp(map_geometry[selected_geometry].size.x,
-                                                               0.5f, 1000.0f);
-            }
-            if (IsKeyPressed(KEY_A)) {
-                map_geometry[selected_geometry].size.z -= step_size;
-                map_geometry[selected_geometry].size.z = Clamp(map_geometry[selected_geometry].size.z,
-                                                               0.5f, 1000.0f);
-            }
-            if (IsKeyPressed(KEY_D)) {
-                map_geometry[selected_geometry].size.z += step_size;
-
-                map_geometry[selected_geometry].size.z = Clamp(map_geometry[selected_geometry].size.z,
-                                                               0.5f, 1000.0f);
-            }
-            if (IsKeyPressed(KEY_X)) {
-                map_geometry[selected_geometry].size.y -= step_size;
-
-                map_geometry[selected_geometry].size.y = Clamp(map_geometry[selected_geometry].size.y,
-                                                               0.5f, 1000.0f);
-            }
-            if (IsKeyPressed(KEY_Z)) {
-                map_geometry[selected_geometry].size.y += step_size;
-
-                map_geometry[selected_geometry].size.y = Clamp(map_geometry[selected_geometry].size.y,
-                                                               0.5f, 1000.0f);
+                draw_ground_gui(&selected_ground, &ground_ammount, map_ground, camera, step_size);
+                edit_ground(map_ground, selected_ground, step_size);
             }
         }
+
+        DrawCircle(GetScreenWidth() / 2, GetScreenHeight() / 2, 1, WHITE);
 
         EndDrawing();
     }

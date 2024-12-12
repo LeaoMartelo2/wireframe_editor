@@ -53,7 +53,7 @@ void move_camera_vertical(Camera3D *camera, float distance) {
 
 void update_custom_camera(Camera3D *camera) {
 
-    float distance = 50.0f;
+    float distance = 150.0f;
 
     float delta_time = GetFrameTime();
 
