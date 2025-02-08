@@ -4,6 +4,8 @@
 #include "../raylib/raygui.h"
 #include "../raylib/raylib.h"
 #include "../raylib/raymath.h"
+#include <math.h>
+#include <stdio.h>
 
 #define MAX_GEOMETRY 100
 #define MAX_GROUND 100

@@ -1,17 +1,14 @@
-#include "../raylib/raylib.h"
-#include "../raylib/raymath.h"
-#include "../raylib/rcamera.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "camera.h"
 
 Vector3 get_camera_forward(Camera3D *camera) {
 
     return Vector3Normalize(Vector3Subtract(camera->target, camera->position));
 }
 
-Vector3 get_camera_up(Camera3D *camera) { return Vector3Normalize(camera->up); }
+Vector3 get_camera_up(Camera3D *camera) {
+
+    return Vector3Normalize(camera->up);
+}
 
 Vector3 get_camera_right(Camera3D *camera) {
 
@@ -22,9 +19,9 @@ Vector3 get_camera_right(Camera3D *camera) {
 }
 
 void move_camera_forward(Camera3D *camera, float distance) {
-
     Vector3 forward = get_camera_forward(camera);
 
+    /*forward.y = 0;*/
     forward = (Vector3Normalize(forward));
 
     forward = Vector3Scale(forward, distance);
@@ -54,7 +51,7 @@ void move_camera_vertical(Camera3D *camera, float distance) {
     camera->target = Vector3Add(camera->target, up);
 }
 
-void camera_update(Camera3D *camera) {
+void update_custom_camera(Camera3D *camera) {
 
     float distance = 150.0f;
 
@@ -85,11 +82,7 @@ void camera_update(Camera3D *camera) {
         move_camera_vertical(camera, distance * delta_time);
     }
 
-    if (IsKeyDown(KEY_LEFT_SHIFT)) {
+    if (IsKeyDown(KEY_LEFT_CONTROL)) {
         move_camera_vertical(camera, -distance * delta_time);
     }
 }
-
-#ifdef __cplusplus
-}
-#endif
