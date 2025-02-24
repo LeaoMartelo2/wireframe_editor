@@ -1,8 +1,6 @@
 #include "../raylib/raylib.h"
 #include "../raylib/raymath.h"
-#include "camera.h"
 #include "editor.h"
-#include "geometry.h"
 
 int main(void) {
 
@@ -16,26 +14,29 @@ int main(void) {
         .projection = CAMERA_PERSPECTIVE,
     };
 
-    InitWindow(800, 600, "Wireframe Editor");
+    editor.camera_ptr = &camera;
+
+    InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Wireframe Editor");
+
+    editor.load();
 
     SetExitKey(KEY_NULL);
     ToggleFullscreen();
     SetTargetFPS(60);
-    DisableCursor();
 
     editor.add_geometry({10, 10, 10}, Vector3One() * 10);
 
     while (!WindowShouldClose()) {
 
-        update_custom_camera(&camera);
+        editor.update();
 
         if (IsKeyPressed(KEY_H)) {
 
             editor.add_geometry({10, 10, 10}, camera.position);
         }
 
-        if (IsKeyPressed(KEY_G)) {
-            editor.geometry_selected_id++;
+        if (IsKeyPressed(KEY_J)) {
+            editor.remove_geometry();
         }
 
         BeginDrawing();
@@ -48,9 +49,16 @@ int main(void) {
                 editor.draw_map();
             }
             EndMode3D();
+            DrawText(TextFormat("%zu", editor.geometry_selected_id),
+                     GetScreenWidth() / 2, GetScreenHeight() / 2,
+                     20, WHITE);
+
+            editor.draw_hud();
         }
         EndDrawing();
     }
+
+    editor.unload();
 
     CloseWindow();
 

@@ -16,6 +16,8 @@ void move_camera_forward(Camera3D *camera, float distance);
 void move_camera_right(Camera3D *camera, float distance);
 void move_camera_vertical(Camera3D *camera, float distance);
 
+void camera_rotate(Camera3D *camera);
+
 void update_custom_camera(Camera3D *camera);
 
 #ifdef __cplusplus

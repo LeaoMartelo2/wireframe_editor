@@ -11,10 +11,11 @@ extern "C" {
 
 void draw_reference_point(void);
 
-typedef struct {
+typedef struct Geometry {
     Vector3 size;
     Vector3 pos;
     bool selected;
+    bool empty;
 } Geometry;
 
 void geometry_draw(Geometry *geometry, bool selected);

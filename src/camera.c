@@ -52,6 +52,15 @@ void move_camera_vertical(Camera3D *camera, float distance) {
     camera->target = Vector3Add(camera->target, up);
 }
 
+void camera_rotate(Camera3D *camera) {
+
+    float delta_time = GetFrameTime();
+    Vector2 mouse_pos_delta = GetMouseDelta();
+
+    CameraYaw(camera, -mouse_pos_delta.x * 0.1f * delta_time, false);
+    CameraPitch(camera, -mouse_pos_delta.y * 0.1f * delta_time, true, false, false);
+}
+
 void update_custom_camera(Camera3D *camera) {
 
     float distance = 150.0f;
