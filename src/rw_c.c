@@ -1,8 +1,8 @@
 #include "include/raywire.h"
 
 rw_theme_t transparent_theme = {
-    .colors = {0},
-    .text = {0},
+    .colors = {},
+    .text = {},
 };
 
 void rw_free_theme(rw_theme_t *theme) {

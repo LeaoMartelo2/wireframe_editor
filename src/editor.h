@@ -7,16 +7,11 @@
 #include "include/raywire.h"
 #include <vector>
 
-typedef enum {
-    EDITOR_GROUND,
-    EDITOR_GEOMETRY,
-    EDITOR_TYPES_TOTAL,
-} EditorType;
-
 class Editor {
 
   public:
     std::vector<Geometry> map_geometry;
+    std::vector<Ground> map_ground;
 
     int current_mode;
     Camera3D *camera_ptr;
@@ -26,7 +21,7 @@ class Editor {
     Font alt_font;
 
     size_t geometry_selected_id;
-    size_t floor_selected_id;
+    size_t ground_selected_id;
 
     Editor();
     ~Editor();
@@ -36,8 +31,15 @@ class Editor {
 
     void update(void);
 
+    void geometry_dialogue(void);
     void add_geometry(Vector3 size, Vector3 pos);
     void remove_geometry(void);
+    void edit_geometry(size_t id);
+
+    void ground_dialogue(void);
+    void add_ground(Vector3 size, Vector3 pos);
+    void remove_ground(void);
+    void edit_ground(size_t id);
 
     void draw_map(void);
     void draw_hud(void);
