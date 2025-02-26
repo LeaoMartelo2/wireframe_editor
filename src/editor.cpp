@@ -57,9 +57,12 @@ void Editor::save_json(const std::string &filename) {
 
 Editor::Editor() {
 
-    add_geometry({10, 10, 10}, {0, 5, 0});
     add_ground({1000, 1, 1000}, {0, -1, 0});
-    add_ground({10, 1, 10}, {0, 10, 0});
+
+    add_geometry({25, 25, 25}, {500, 25, 500});
+
+    add_geometry({100, 10, 100}, {50, 5, 50});
+    add_ground({100, 1, 100}, {50, 5 + 10 / 2.0, 50});
 
     gui_theme.colors.default_color = GetColor(0x181818FF);
     gui_theme.colors.hoovered_color = LIGHTGRAY;
@@ -363,42 +366,42 @@ void Editor::draw_hud(void) {
 
         DrawRectangleRoundedLinesEx(window_border, 0.1, 10, 500, ColorAlpha(DARKGRAY, 1.15));
 
-        static rw_button_create(editor_type,
-                                35,
-                                RW_ROUNDED,
-                                &gui_theme,
-                                280, 40,
-                                width / 2 - 7,
-                                5);
+        rw_button_create(editor_type,
+                         35,
+                         RW_ROUNDED,
+                         &gui_theme,
+                         280, 40,
+                         width / 2 - 7,
+                         5);
 
-        static rw_button_create(ground_to_geometry, 20, RW_ROUNDED, &gui_theme, 200, 40, width / 4, 5);
+        rw_button_create(ground_to_geometry, 20, RW_ROUNDED, &gui_theme, 200, 40, width / 4, 5);
 
-        static rw_button_create(geometry_selected_inc,
-                                50,
-                                RW_ROUNDED,
-                                &gui_theme,
-                                50, 50,
-                                25,
-                                50);
+        rw_button_create(geometry_selected_inc,
+                         50,
+                         RW_ROUNDED,
+                         &gui_theme,
+                         50, 50,
+                         25,
+                         50);
 
-        static rw_button_create(geometry_selected_dec,
-                                50,
-                                RW_ROUNDED,
-                                &gui_theme,
-                                50, 50,
-                                135,
-                                50);
+        rw_button_create(geometry_selected_dec,
+                         50,
+                         RW_ROUNDED,
+                         &gui_theme,
+                         50, 50,
+                         135,
+                         50);
 
-        static rw_button_create(delete_geometry, 30, RW_ROUNDED,
-                                &gui_theme, 60, 45, 120, 120);
+        rw_button_create(delete_geometry, 30, RW_ROUNDED,
+                         &gui_theme, 60, 45, 120, 120);
 
-        static rw_button_create(create_geometry, 30, RW_ROUNDED,
-                                &gui_theme, 60, 45, 30, 120);
+        rw_button_create(create_geometry, 30, RW_ROUNDED,
+                         &gui_theme, 60, 45, 30, 120);
 
-        static rw_button_create(move_geometry, 30, RW_ROUNDED,
-                                &gui_theme, 200, 45, 25, 180);
+        rw_button_create(move_geometry, 30, RW_ROUNDED,
+                         &gui_theme, 200, 45, 25, 180);
 
-        static rw_button_create(export_map, 30, RW_SQUARE, &gui_theme, 200, 45, 5, height - 60);
+        rw_button_create(export_map, 30, RW_SQUARE, &gui_theme, 200, 45, 5, height - 60);
 
         if (rw_button(&export_map, "Export map")) {
 
