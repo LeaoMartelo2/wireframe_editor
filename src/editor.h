@@ -4,6 +4,7 @@
 #include "../raylib/raylib.h"
 #include "../raylib/raymath.h"
 #include "geometry.h"
+#include "include/json.hpp"
 #include "include/raywire.h"
 #include <vector>
 
@@ -43,6 +44,14 @@ class Editor {
 
     void draw_map(void);
     void draw_hud(void);
+
+    void to_json(nlohmann::json &j, const Vector3 &v);
+    void from_json(const nlohmann::json &j, Vector3 &v);
+
+    nlohmann::json output_json(void);
+    void save_json(const std::string &filename);
+
+    void export_map();
 };
 
 #endif // !_EDITOR_H

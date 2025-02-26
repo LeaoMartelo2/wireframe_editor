@@ -2,8 +2,58 @@
 #include "camera.h"
 #include "geometry.h"
 #include "global.h"
+#include "include/json.hpp"
 #include "include/raywire.h"
+#include <fstream>
 #include <math.h>
+
+void Editor::to_json(nlohmann::json &j, const Vector3 &v) {
+    j = nlohmann::json{{"x", v.x}, {"y", v.y}, {"z", v.z}};
+}
+
+void Editor::from_json(const nlohmann::json &j, Vector3 &v) {
+    j.at("x").get_to(v.x);
+    j.at("y").get_to(v.y);
+    j.at("z").get_to(v.z);
+}
+
+nlohmann::json Editor::output_json() {
+    nlohmann::json json_output = nlohmann::json::array();
+
+    // Add geometries to JSON output
+    for (const auto &geometry : map_geometry) {
+        nlohmann::json geometry_json;
+        geometry_json["type"] = "geometry";
+        nlohmann::json size_json;
+        to_json(size_json, geometry.size);
+        geometry_json["size"] = size_json;
+        nlohmann::json pos_json;
+        to_json(pos_json, geometry.pos);
+        geometry_json["pos"] = pos_json;
+        json_output.push_back(geometry_json);
+    }
+
+    // Add grounds to JSON output
+    for (const auto &ground : map_ground) {
+        nlohmann::json ground_json;
+        ground_json["type"] = "floor";
+        nlohmann::json size_json;
+        to_json(size_json, ground.size);
+        ground_json["size"] = size_json;
+        nlohmann::json pos_json;
+        to_json(pos_json, ground.pos);
+        ground_json["pos"] = pos_json;
+        json_output.push_back(ground_json);
+    }
+
+    return json_output;
+}
+
+void Editor::save_json(const std::string &filename) {
+    nlohmann::json json_output = output_json();
+    std::ofstream file(filename);
+    file << json_output.dump(4) << std::endl;
+}
 
 Editor::Editor() {
 
@@ -347,6 +397,13 @@ void Editor::draw_hud(void) {
 
         static rw_button_create(move_geometry, 30, RW_ROUNDED,
                                 &gui_theme, 200, 45, 25, 180);
+
+        static rw_button_create(export_map, 30, RW_SQUARE, &gui_theme, 200, 45, 5, height - 60);
+
+        if (rw_button(&export_map, "Export map")) {
+
+            save_json("level.json");
+        }
 
         switch (current_mode) {
 
