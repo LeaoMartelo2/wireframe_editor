@@ -22,15 +22,17 @@ nlohmann::json Editor::output_json() {
 
     // Add geometries to JSON output
     for (const auto &geometry : map_geometry) {
-        nlohmann::json geometry_json;
-        geometry_json["type"] = "geometry";
-        nlohmann::json size_json;
-        to_json(size_json, geometry.size);
-        geometry_json["size"] = size_json;
-        nlohmann::json pos_json;
-        to_json(pos_json, geometry.pos);
-        geometry_json["pos"] = pos_json;
-        json_output.push_back(geometry_json);
+        if (!geometry.empty) {
+            nlohmann::json geometry_json;
+            geometry_json["type"] = "geometry";
+            nlohmann::json size_json;
+            to_json(size_json, geometry.size);
+            geometry_json["size"] = size_json;
+            nlohmann::json pos_json;
+            to_json(pos_json, geometry.pos);
+            geometry_json["pos"] = pos_json;
+            json_output.push_back(geometry_json);
+        }
     }
 
     // Add grounds to JSON output
