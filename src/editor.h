@@ -13,6 +13,7 @@ class Editor {
   public:
     std::vector<Geometry> map_geometry;
     std::vector<Ground> map_ground;
+    SpawnPoint player_spawn_point;
 
     int current_mode;
     Camera3D *camera_ptr;

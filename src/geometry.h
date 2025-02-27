@@ -30,6 +30,13 @@ typedef struct Ground {
 
 void ground_draw(Ground *ground, bool selected, int editor_mode);
 
+typedef struct SpawnPoint {
+    Vector3 pos;
+    Vector3 looking_at;
+} SpawnPoint;
+
+void spawnpoint_draw(SpawnPoint *sp);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

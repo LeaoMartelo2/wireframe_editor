@@ -16,12 +16,13 @@ int main(void) {
 
     editor.camera_ptr = &camera;
 
-    InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Wireframe Editor");
+    InitWindow(0, 0, "Wireframe Editor");
 
     editor.load();
 
     SetExitKey(KEY_NULL);
-    ToggleFullscreen();
+    /*ToggleFullscreen();*/
+    MaximizeWindow();
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {

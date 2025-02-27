@@ -46,6 +46,17 @@ nlohmann::json Editor::output_json() {
         json_output.push_back(ground_json);
     }
 
+    nlohmann::json spawn_point;
+    spawn_point["type"] = "spawnpoint";
+    nlohmann::json pos_json;
+    to_json(pos_json, player_spawn_point.pos);
+    spawn_point["pos"] = pos_json;
+    nlohmann::json looking_at;
+    to_json(looking_at, player_spawn_point.looking_at);
+    spawn_point["looking_at"] = looking_at;
+
+    json_output.push_back(spawn_point);
+
     return json_output;
 }
 
@@ -68,6 +79,9 @@ Editor::Editor() {
     gui_theme.colors.hoovered_color = LIGHTGRAY;
     gui_theme.colors.pressed_color = DARKGRAY;
     gui_theme.colors.text_color = WHITE;
+
+    player_spawn_point.pos = {105, 15, 50};
+    player_spawn_point.looking_at = {110, 30 + 7, 50};
 
     current_mode = EDITOR_GEOMETRY;
 
@@ -203,9 +217,11 @@ void Editor::remove_geometry(void) {
 
 void Editor::edit_geometry(size_t id) {
 
-    float step = 10.0f;
+    float step = 5.0f;
 
     float pos_step = 1.0f;
+
+    float max_size = 2000.0f;
 
     if (IsKeyDown(KEY_LEFT_SHIFT)) {
         step *= -1;
@@ -218,15 +234,15 @@ void Editor::edit_geometry(size_t id) {
     }
 
     if (IsKeyPressedRepeat(KEY_ONE) | IsKeyPressed(KEY_ONE)) {
-        if (map_geometry[id].size.x + step > 0)
+        if ((map_geometry[id].size.x + step > 0) & (map_geometry[id].size.x < max_size))
             map_geometry[id].size.x += step;
     }
     if (IsKeyPressedRepeat(KEY_TWO) | IsKeyPressed(KEY_TWO)) {
-        if (map_geometry[id].size.y + step > 0)
+        if ((map_geometry[id].size.y + step > 0) & (map_geometry[id].size.x < max_size))
             map_geometry[id].size.y += step;
     }
     if (IsKeyPressedRepeat(KEY_THREE) | IsKeyPressed(KEY_THREE)) {
-        if (map_geometry[id].size.z + step > 0)
+        if ((map_geometry[id].size.z + step > 0) & (map_geometry[id].size.x < max_size))
             map_geometry[id].size.z += step;
     }
 
@@ -297,6 +313,8 @@ void Editor::edit_ground(size_t id) {
 
     float pos_step = 1.0f;
 
+    float max_size = 2000.0f;
+
     if (IsKeyDown(KEY_LEFT_SHIFT)) {
         step *= -1;
         pos_step *= -1;
@@ -307,16 +325,16 @@ void Editor::edit_ground(size_t id) {
         pos_step *= 10;
     }
 
-    if (IsKeyPressedRepeat(KEY_ONE) | IsKeyPressed(KEY_ONE)) {
-        if (map_ground[id].size.x + step > 0)
+    if (IsKeyPressedRepeat(KEY_ONE) & IsKeyPressed(KEY_ONE)) {
+        if ((map_ground[id].size.x + step > 0) | (map_ground[id].size.x < max_size))
             map_ground[id].size.x += step;
     }
     /*if (IsKeyPressedRepeat(KEY_TWO) | IsKeyPressed(KEY_TWO)) {*/
     /*if (map_ground[id].size.y + step > 0)*/
     /*map_ground[id].size.y += step;*/
     /*}*/
-    if (IsKeyPressedRepeat(KEY_THREE) | IsKeyPressed(KEY_THREE)) {
-        if (map_ground[id].size.z + step > 0)
+    if (IsKeyPressedRepeat(KEY_THREE) & IsKeyPressed(KEY_THREE)) {
+        if ((map_ground[id].size.z + step > 0) | (map_ground[id].size.z < max_size))
             map_ground[id].size.z += step;
     }
 
@@ -349,6 +367,8 @@ void Editor::draw_map(void) {
             ground_draw(&map_ground[i], map_ground[i].selected, current_mode);
         }
     }
+
+    spawnpoint_draw(&player_spawn_point);
 }
 
 void Editor::draw_hud(void) {
@@ -392,14 +412,22 @@ void Editor::draw_hud(void) {
                          135,
                          50);
 
-        rw_button_create(delete_geometry, 30, RW_ROUNDED,
-                         &gui_theme, 60, 45, 120, 120);
+        /*rw_button_create(name, font_size_, style, theme_ref, width_, height_, posX, posY)*/
 
         rw_button_create(create_geometry, 30, RW_ROUNDED,
-                         &gui_theme, 60, 45, 30, 120);
+                         &gui_theme, 60, 45, 5, 120);
+
+        rw_button_create(delete_geometry, 30, RW_ROUNDED,
+                         &gui_theme, 60, 45, 80, 120);
+
+        rw_button_create(goto_geometry, 30, RW_ROUNDED,
+                         &gui_theme, 60, 45, 155, 120);
+
+        rw_button_create(set_viewangle, 30, RW_ROUNDED,
+                         &gui_theme, 100, 45, 25, 120);
 
         rw_button_create(move_geometry, 30, RW_ROUNDED,
-                         &gui_theme, 200, 45, 25, 180);
+                         &gui_theme, 200, 45, 15, 180);
 
         rw_button_create(export_map, 30, RW_SQUARE, &gui_theme, 200, 45, 5, height - 60);
 
@@ -425,7 +453,7 @@ void Editor::draw_hud(void) {
                            },
                            {map_geometry[i].pos.x,
 
-                            map_geometry[i].pos.y + map_geometry[i].size.y / 2,
+                            map_geometry[i].pos.y + map_geometry[i].size.y / 2 + 1,
 
                             map_geometry[i].pos.z});
             }
@@ -473,6 +501,11 @@ void Editor::draw_hud(void) {
                              {round(camera_ptr->position.x),
                               round(camera_ptr->position.y),
                               round(camera_ptr->position.z)});
+            }
+
+            if (rw_button(&goto_geometry, "Goto")) {
+                camera_ptr->target = map_geometry[geometry_selected_id].pos;
+                camera_ptr->position = Vector3Add(map_geometry[geometry_selected_id].pos, {15, 15, 15});
             }
 
             if (rw_button(&move_geometry, "Move to camera")) {
@@ -548,6 +581,11 @@ void Editor::draw_hud(void) {
                             round(camera_ptr->position.z)});
             }
 
+            if (rw_button(&goto_geometry, "Goto")) {
+                camera_ptr->target = map_ground[ground_selected_id].pos;
+                camera_ptr->position = Vector3Add(map_ground[ground_selected_id].pos, {15, 15, 15});
+            }
+
             if (rw_button(&move_geometry, "Move to camera")) {
                 map_ground[ground_selected_id].pos.x = (int)camera_ptr->position.x;
                 map_ground[ground_selected_id].pos.y = (int)camera_ptr->position.y;
@@ -567,6 +605,38 @@ void Editor::draw_hud(void) {
             edit_ground(ground_selected_id);
 
             ground_dialogue();
+
+            break;
+
+        case EDITOR_CONFIG:
+
+            if (rw_button(&editor_type, "Level settings")) {
+                current_mode = (current_mode + 1) % EDITOR_TYPES_TOTAL;
+            }
+
+            rw_button_create(spawnpoint_set, 30, RW_ROUNDED, &gui_theme, 200, 45, 20, 30);
+            DrawTextEx(alt_font,
+                       TextFormat("X:%d Y:%d Z:%d",
+                                  (int)player_spawn_point.pos.x,
+                                  (int)player_spawn_point.pos.y,
+                                  (int)player_spawn_point.pos.z),
+                       {15, 90}, 25, 1, WHITE);
+
+            if (rw_button(&spawnpoint_set, "Set Spawnpoint")) {
+                player_spawn_point.pos = {
+                    round(camera_ptr->position.x),
+                    round(camera_ptr->position.y),
+                    round(camera_ptr->position.z)};
+            }
+
+            if (rw_button(&goto_geometry, "Goto")) {
+                camera_ptr->target = player_spawn_point.looking_at;
+                camera_ptr->position = Vector3Add(player_spawn_point.pos, {0, 7, 0});
+            }
+
+            if (rw_button(&set_viewangle, "Set angle")) {
+                player_spawn_point.looking_at = camera_ptr->target;
+            }
 
             break;
         }

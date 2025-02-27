@@ -3,6 +3,7 @@
 
 typedef enum {
     EDITOR_GROUND,
+    EDITOR_CONFIG,
     EDITOR_GEOMETRY,
     EDITOR_TYPES_TOTAL,
 } EditorType;
