@@ -1,5 +1,4 @@
 #include "../raylib/raylib.h"
-#include "../raylib/raymath.h"
 #include "editor.h"
 
 int main(void) {

@@ -49,12 +49,16 @@ void spawnpoint_draw(SpawnPoint *sp) {
     DrawCubeWiresV(sp->pos, player_size, ORANGE);
 
     // point where is looking
-    DrawCube(sp->looking_at, 1, 1, 1, WHITE);
+    DrawCubeWires(sp->looking_at, 1, 1, 1, WHITE);
 
     Vector3 camera_pos = Vector3Add(sp->pos, (Vector3){0, 7, 0});
 
     // camera position
     DrawCube(camera_pos, 1, 1, 1, ORANGE);
+
+    // line from player's size to camera
+
+    DrawLine3D(sp->pos, camera_pos, ORANGE);
 
     // line from camera to looking_at
     DrawLine3D(camera_pos, sp->looking_at, WHITE);

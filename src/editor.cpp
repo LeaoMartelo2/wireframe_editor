@@ -73,7 +73,7 @@ Editor::Editor() {
     add_geometry({25, 25, 25}, {500, 25, 500});
 
     add_geometry({100, 10, 100}, {50, 5, 50});
-    add_ground({100, 1, 100}, {50, 5 + 10 / 2.0, 50});
+    add_ground({100, 1, 100}, {50, 5 + 10 / 2.0 + 0.5, 50});
 
     gui_theme.colors.default_color = GetColor(0x181818FF);
     gui_theme.colors.hoovered_color = LIGHTGRAY;
@@ -311,7 +311,7 @@ void Editor::edit_ground(size_t id) {
 
     float step = 10.0f;
 
-    float pos_step = 1.0f;
+    float pos_step = 0.5f;
 
     float max_size = 2000.0f;
 
@@ -375,6 +375,8 @@ void Editor::draw_hud(void) {
 
     float width = GetScreenWidth();
     float height = GetScreenHeight();
+
+    DrawCircleV({width / 2, height / 2}, 2, WHITE);
 
     if (hud_toggle) {
         Rectangle window_border = {
@@ -453,7 +455,7 @@ void Editor::draw_hud(void) {
                            },
                            {map_geometry[i].pos.x,
 
-                            map_geometry[i].pos.y + map_geometry[i].size.y / 2 + 1,
+                            map_geometry[i].pos.y + map_geometry[i].size.y / 2 + 0.5f,
 
                             map_geometry[i].pos.z});
             }
@@ -635,7 +637,9 @@ void Editor::draw_hud(void) {
             }
 
             if (rw_button(&set_viewangle, "Set angle")) {
-                player_spawn_point.looking_at = camera_ptr->target;
+                /*player_spawn_point.looking_at = camera_ptr->target;*/
+                Vector3 forward = get_camera_forward(camera_ptr);
+                player_spawn_point.looking_at = (forward * 10) + camera_ptr->position;
             }
 
             break;
