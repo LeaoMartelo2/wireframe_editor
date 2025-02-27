@@ -37,15 +37,18 @@ nlohmann::json Editor::output_json() {
 
     // Add grounds to JSON output
     for (const auto &ground : map_ground) {
-        nlohmann::json ground_json;
-        ground_json["type"] = "floor";
-        nlohmann::json size_json;
-        to_json(size_json, ground.size);
-        ground_json["size"] = size_json;
-        nlohmann::json pos_json;
-        to_json(pos_json, ground.pos);
-        ground_json["pos"] = pos_json;
-        json_output.push_back(ground_json);
+
+        if (!ground.empty) {
+            nlohmann::json ground_json;
+            ground_json["type"] = "floor";
+            nlohmann::json size_json;
+            to_json(size_json, ground.size);
+            ground_json["size"] = size_json;
+            nlohmann::json pos_json;
+            to_json(pos_json, ground.pos);
+            ground_json["pos"] = pos_json;
+            json_output.push_back(ground_json);
+        }
     }
 
     nlohmann::json spawn_point;
