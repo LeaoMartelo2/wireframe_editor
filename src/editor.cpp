@@ -224,7 +224,7 @@ void Editor::edit_geometry(size_t id) {
 
     float step = 5.0f;
 
-    float pos_step = 1.0f;
+    float pos_step = 0.5f;
 
     float max_size = 2000.0f;
 
@@ -239,16 +239,25 @@ void Editor::edit_geometry(size_t id) {
     }
 
     if (IsKeyPressedRepeat(KEY_ONE) | IsKeyPressed(KEY_ONE)) {
-        if ((map_geometry[id].size.x + step > 0) & (map_geometry[id].size.x < max_size))
+        if ((map_geometry[id].size.x + step > 0) & (map_geometry[id].size.x + step < max_size))
             map_geometry[id].size.x += step;
+
+        if (map_geometry[id].size.x > max_size)
+            map_geometry[id].size.x = max_size;
     }
     if (IsKeyPressedRepeat(KEY_TWO) | IsKeyPressed(KEY_TWO)) {
-        if ((map_geometry[id].size.y + step > 0) & (map_geometry[id].size.x < max_size))
+        if ((map_geometry[id].size.y + step > 0) & (map_geometry[id].size.y + step < max_size))
             map_geometry[id].size.y += step;
+
+        if (map_geometry[id].size.y > max_size)
+            map_geometry[id].size.y = max_size;
     }
     if (IsKeyPressedRepeat(KEY_THREE) | IsKeyPressed(KEY_THREE)) {
-        if ((map_geometry[id].size.z + step > 0) & (map_geometry[id].size.x < max_size))
+        if ((map_geometry[id].size.z + step > 0) & (map_geometry[id].size.z + step < max_size))
             map_geometry[id].size.z += step;
+
+        if (map_geometry[id].size.z > max_size)
+            map_geometry[id].size.y = max_size;
     }
 
     if (IsKeyPressedRepeat(KEY_Q) | IsKeyPressed(KEY_Q)) {
@@ -314,7 +323,7 @@ void Editor::remove_ground(void) {
 
 void Editor::edit_ground(size_t id) {
 
-    float step = 10.0f;
+    float step = 5.0f;
 
     float pos_step = 0.5f;
 
@@ -333,6 +342,9 @@ void Editor::edit_ground(size_t id) {
     if (IsKeyPressedRepeat(KEY_ONE) & IsKeyPressed(KEY_ONE)) {
         if ((map_ground[id].size.x + step > 0) | (map_ground[id].size.x < max_size))
             map_ground[id].size.x += step;
+
+        if (map_ground[id].size.x > max_size)
+            map_ground[id].size.x = max_size;
     }
     /*if (IsKeyPressedRepeat(KEY_TWO) | IsKeyPressed(KEY_TWO)) {*/
     /*if (map_ground[id].size.y + step > 0)*/
@@ -341,6 +353,9 @@ void Editor::edit_ground(size_t id) {
     if (IsKeyPressedRepeat(KEY_THREE) & IsKeyPressed(KEY_THREE)) {
         if ((map_ground[id].size.z + step > 0) | (map_ground[id].size.z < max_size))
             map_ground[id].size.z += step;
+
+        if (map_ground[id].size.z > max_size)
+            map_ground[id].size.z = max_size;
     }
 
     if (IsKeyPressedRepeat(KEY_Q) | IsKeyPressed(KEY_Q)) {
